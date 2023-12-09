@@ -147,7 +147,7 @@ class SemanticSearchConfig(BaseModel):
 
 
 class Config(BaseModel):
-    cache_folder: Path = Path("/Users/alleon_g/code/datanoblabla_202312/cache")
+    cache_folder: Path = Path("/Users/alleon_g/code/punfinder/cache")
     embeddings: EmbeddingsConfig
     semantic_search: SemanticSearchConfig
     llm: LlamaModelConfig
@@ -155,17 +155,17 @@ class Config(BaseModel):
 
 llama_model_config = LlamaModelConfig(
     model_path=Path(
-        "/Users/alleon_g/code/datanoblabla_202312/cache/openorca-zephyr-7b.Q5_K_M.gguf"
+        "/Users/alleon_g/code/punfinder/cache/openorca-zephyr-7b.Q5_K_M.gguf"
     ),
     prompt_template="<|system|>\n{context}</s>\n<|user|>\n{question}</s>\n<|assistant|>",
 )
 
 document_settings = DocumentPathSettings(
-    doc_path=Path("/Users/alleon_g/code/datanoblabla_202312/sample_data/"),
+    doc_path=Path("/Users/alleon_g/code/punfinder/sample_data/"),
     scan_extensions=[DocumentExtension.pdf],
 )
 embeddings_config = EmbeddingsConfig(
-    embeddings_path=Path("/Users/alleon_g/code/datanoblabla_202312/data/"),
+    embeddings_path=Path("/Users/alleon_g/code/punfinder/data/"),
     document_settings=[document_settings],
 )
 semantic_search_config = SemanticSearchConfig(search_type="mmr")
@@ -714,7 +714,7 @@ class CustomLlamaLangChainModel(LLM):
 splitter = DocumentSplitter(config)
 all_docs, all_hash_filename_mappings, all_hash_docid_mappings = splitter.split()
 
-persist_folder: str = "/Users/alleon_g/code/datanoblabla_202312/db/"
+persist_folder: str = "/Users/alleon_g/code/punfinder/db/"
 vs = VectorStoreChroma(persist_folder, config)
 vs.create_index_from_documents(all_docs=all_docs)
 
@@ -737,9 +737,7 @@ for doc in relevant_docs:
 
 logger.info(f"Context: {context}")
 
-model_path = (
-    "/Users/alleon_g/code/datanoblabla_202312/cache/openorca-zephyr-7b.Q5_K_M.gguf"
-)
+model_path = "/Users/alleon_g/code/punfinder/cache/openorca-zephyr-7b.Q5_K_M.gguf"
 
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
@@ -767,6 +765,20 @@ Always say "thanks for asking!" at the end of the answer.
 {context}
 Question: {question}
 Helpful Answer:"""
+
+template = """
+<|system|>
+Use the following pieces of context to answer the question at the end.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+Use three sentences maximum and keep the answer as concise as possible.
+Always say "thanks for asking!" at the end of the answer.
+
+{context}
+</s>
+<|user|>
+{question}</s>
+<|assistant|>
+"""
 
 rag_prompt_custom = PromptTemplate.from_template(template)
 
